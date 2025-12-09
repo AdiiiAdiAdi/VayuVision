@@ -4,13 +4,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
 import { Card } from './components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from './components/ui/popover';
 import { toast } from "sonner";
 import { FixedGridMap } from './components/FixedGridMap';
 import { SimulationControls } from './components/SimulationControls';
 import { KPIMetrics } from './components/KPIMetrics';
 import { InterventionPanel } from './components/InterventionPanel';
 import { RecommendationPanel } from './components/RecommendationPanel';
-import { Map, BarChart3, Settings, TrendingUp, Search } from 'lucide-react';
+import { Map, BarChart3, Settings, TrendingUp, Search, User } from 'lucide-react';
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
 import { Slider } from './components/ui/slider';
@@ -86,6 +87,7 @@ interface Recommendation {
 export default function App() {
   // State
   const [selectedCell, setSelectedCell] = useState<GridCell | null>(null);
+  const [selectedCellBounds, setSelectedCellBounds] = useState<[[number, number], [number, number]] | null>(null);
   const [selectedIntervention, setSelectedIntervention] = useState<InterventionType | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isSimulationRunning, setIsSimulationRunning] = useState(false);
@@ -93,6 +95,7 @@ export default function App() {
   const [showInterventions, setShowInterventions] = useState(true);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [showRecommendations, setShowRecommendations] = useState(false);
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
 
   // Prediction parameters
   const [locationQuery, setLocationQuery] = useState<string>('');
@@ -373,6 +376,7 @@ export default function App() {
       // Load parameters for the newly selected cell
       loadParamsFromCell(cell);
       setSelectedCell(cell);
+      setSelectedCellBounds(data.bounds);
     }
   };
 
@@ -883,6 +887,65 @@ export default function App() {
                 Simulate, visualize, and plan carbon capture strategies for urban neighborhoods
               </p>
             </div>
+            <div className="flex items-center gap-6">
+              <button className="text-gray-700 hover:text-gray-900 font-medium transition-colors cursor-pointer bg-transparent border-none p-0 shadow-none outline-none">
+                About Us
+              </button>
+              <Popover open={showProfilePopup} onOpenChange={setShowProfilePopup}>
+                <PopoverTrigger asChild>
+                  <button className="text-gray-700 hover:text-gray-900 transition-colors cursor-pointer bg-transparent border-none p-0 shadow-none outline-none">
+                    <User className="w-5 h-5" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-96 p-6 bg-white" align="end" style={{ backgroundColor: '#ffffff' }}>
+                  <div className="space-y-5">
+                    <div className="flex items-center gap-3 pb-4 border-b">
+                      <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                        <User className="w-6 h-6 text-gray-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Profile</h3>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <Label htmlFor="profile-name" className="text-sm text-gray-600 w-20 flex-shrink-0">Name:</Label>
+                        <Input
+                          id="profile-name"
+                          type="text"
+                          defaultValue="John Doe"
+                          className="flex-1 bg-white text-black"
+                        />
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Label htmlFor="profile-email" className="text-sm text-gray-600 w-20 flex-shrink-0">Email:</Label>
+                        <Input
+                          id="profile-email"
+                          type="email"
+                          defaultValue="user@example.com"
+                          className="flex-1 bg-white text-black"
+                        />
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Label htmlFor="profile-password" className="text-sm text-gray-600 w-20 flex-shrink-0">Password:</Label>
+                        <Input
+                          id="profile-password"
+                          type="password"
+                          placeholder="Enter new password"
+                          className="flex-1 bg-white text-black"
+                        />
+                      </div>
+                      <Button 
+                        onClick={() => setIsLoggedIn(false)}
+                        className="w-full bg-red-600 hover:bg-red-700 text-white mt-6"
+                      >
+                        Logout
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
         </div>
 
@@ -899,15 +962,10 @@ export default function App() {
               Interactive Map
             </TabsTrigger>
 
-            <TabsTrigger value="simulation" className="flex-1">
-              <Settings className="w-4 h-4 mr-2" />
-              Simulation
-            </TabsTrigger>
-
-            {/* <TabsTrigger value="prediction" className="flex-1">
+            <TabsTrigger value="prediction" className="flex-1">
               <TrendingUp className="w-4 h-4 mr-2" />
               Prediction
-            </TabsTrigger> */}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
@@ -921,241 +979,65 @@ export default function App() {
 
           <TabsContent value="map" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Map - takes full left width */}
-              {/* Map Layout with Side Panel */}
-              {/* Details (Left), Map (Center), Interventions (Right) */}
-
-              {/* Left Side: Cell Details Panel */}
-              <div className="lg:col-span-1 space-y-4">
-                <Card className="p-4 h-full">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Search className="w-5 h-5 text-gray-500" />
-                    Cell Details
-                  </h3>
-
-                  {selectedCell ? (
-                    <div className="space-y-4 animate-in fade-in duration-300">
-                      <div>
-                        <div className="text-sm text-gray-500 mb-1">Cell ID</div>
-                        <div className="text-2xl font-mono font-medium">{selectedCell.id}</div>
-                      </div>
-
-                      <div>
-                        <div className="text-sm text-gray-500 mb-1">Zone Type</div>
-                        <Badge variant="outline" className="text-base capitalize">
-                          {selectedCell.type}
-                        </Badge>
-                      </div>
-
-                      <div>
-                        <div className="text-sm text-gray-500 mb-1">Current Emission</div>
-                        <div className={`text-xl font-bold ${selectedCell.emission > 150 ? 'text-red-600' :
-                          selectedCell.emission > 50 ? 'text-orange-500' : 'text-green-600'
-                          }`}>
-                          {selectedCell.emission.toFixed(1)} <span className="text-sm font-normal text-gray-600">tons/year</span>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="text-sm text-gray-500 mb-1">Active Interventions</div>
-                        {selectedCell.interventions.length > 0 ? (
-                          <div className="flex flex-wrap gap-2">
-                            {selectedCell.interventions.map((i, idx) => {
-                              const reductionAmount = selectedCell.baseEmission * (i.efficiency / 100);
-                              return (
-                                <div key={idx} className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded text-sm">
-                                  <span>{i.icon}</span>
-                                  <span>{i.name}</span>
-                                  <span className="font-semibold ml-1">
-                                    (-{reductionAmount.toFixed(1)} tons)
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <div className="text-sm text-gray-400 italic">No interventions placed yet</div>
-                        )}
-                      </div>
-
-                      {/* Mini Charts Section */}
-                      <div className="space-y-3 pt-2 border-t border-gray-200">
-                        <div className="text-sm text-gray-500 mb-2">Data Visualization</div>
-
-                        {/* Before/After Chart */}
-                        <div className="bg-gray-50 p-3 rounded-lg">
-                          <div className="text-xs text-gray-600 mb-2">Before/After Interventions</div>
-                          <ResponsiveContainer width="100%" height={80}>
-                            <BarChart data={[
-                              {
-                                name: 'Before',
-                                emission: selectedCell.baseEmission,
-                                color: '#ef4444'
-                              },
-                              {
-                                name: 'After',
-                                emission: selectedCell.emission,
-                                color: '#22c55e'
-                              }
-                            ]}>
-                              <Bar dataKey="emission" fill="#8884d8">
-                                {[
-                                  { name: 'Before', emission: selectedCell.baseEmission, color: '#ef4444' },
-                                  { name: 'After', emission: selectedCell.emission, color: '#22c55e' }
-                                ].map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                              </Bar>
-                              <XAxis
-                                dataKey="name"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fontSize: 8 }}
-                              />
-                              <YAxis hide />
-                              <Tooltip
-                                formatter={(value: number) => [`${value.toFixed(1)} tons CO₂`, 'Emission']}
-                                labelStyle={{ fontSize: '10px' }}
-                                contentStyle={{ fontSize: '10px', padding: '4px' }}
-                              />
-                            </BarChart>
-                          </ResponsiveContainer>
-                          <div className="flex justify-center gap-4 text-xs mt-1">
-                            <div className="flex items-center gap-1">
-                              <div className="w-2 h-2 bg-red-500 rounded"></div>
-                              <span>Before: {selectedCell.baseEmission.toFixed(1)}t</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <div className="w-2 h-2 bg-green-500 rounded"></div>
-                              <span>After: {selectedCell.emission.toFixed(1)}t</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Intervention Impact Chart */}
-                        {selectedCell.interventions.length > 0 && (
-                          <div className="bg-gray-50 p-3 rounded-lg">
-                            <div className="text-xs text-gray-600 mb-2">Intervention Impact</div>
-                            <ResponsiveContainer width="100%" height={80}>
-                              <PieChart>
-                                <Pie
-                                  data={[
-                                    {
-                                      name: 'Reduced',
-                                      value: selectedCell.baseEmission - selectedCell.emission,
-                                      color: '#22c55e'
-                                    },
-                                    {
-                                      name: 'Remaining',
-                                      value: selectedCell.emission,
-                                      color: '#ef4444'
-                                    }
-                                  ]}
-                                  cx="50%"
-                                  cy="50%"
-                                  innerRadius={15}
-                                  outerRadius={30}
-                                  paddingAngle={2}
-                                  dataKey="value"
-                                >
-                                  {[
-                                    { name: 'Reduced', value: selectedCell.baseEmission - selectedCell.emission, color: '#22c55e' },
-                                    { name: 'Remaining', value: selectedCell.emission, color: '#ef4444' }
-                                  ].map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                  ))}
-                                </Pie>
-                                <Tooltip
-                                  formatter={(value: number) => [`${value.toFixed(1)} tons`, '']}
-                                  labelStyle={{ fontSize: '10px' }}
-                                  contentStyle={{ fontSize: '10px', padding: '4px' }}
-                                />
-                              </PieChart>
-                            </ResponsiveContainer>
-                            <div className="flex justify-center gap-4 text-xs mt-1">
-                              <div className="flex items-center gap-1">
-                                <div className="w-2 h-2 bg-green-500 rounded"></div>
-                                <span>Reduced</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <div className="w-2 h-2 bg-red-500 rounded"></div>
-                                <span>Remaining</span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Emission Comparison Chart */}
-                        <div className="bg-gray-50 p-3 rounded-lg">
-                          <div className="text-xs text-gray-600 mb-2">vs Zone Average</div>
-                          <ResponsiveContainer width="100%" height={60}>
-                            <BarChart data={[
-                              {
-                                name: 'This Cell',
-                                emission: selectedCell.emission,
-                                avg: gridData.filter(cell => cell.type === selectedCell.type)
-                                  .reduce((sum, cell) => sum + cell.emission, 0) /
-                                  gridData.filter(cell => cell.type === selectedCell.type).length
-                              }
-                            ]}>
-                              <Bar dataKey="emission" fill="#3b82f6" name="This Cell" />
-                              <Bar dataKey="avg" fill="#94a3b8" name="Zone Avg" />
-                              <XAxis
-                                dataKey="name"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fontSize: 8 }}
-                              />
-                              <YAxis hide />
-                              <Tooltip
-                                formatter={(value: number) => [`${value.toFixed(1)} tons`, '']}
-                                labelStyle={{ fontSize: '10px' }}
-                                contentStyle={{ fontSize: '10px', padding: '4px' }}
-                              />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-40 text-gray-400 text-center">
-                      <Map className="w-12 h-12 mb-2 opacity-20" />
-                      <p>Select a grid cell on the map to view details</p>
-                    </div>
-                  )}
-                </Card>
-
-                {/* Intervention Details Linked to Selection */}
-                {selectedIntervention && (
-                  <Card className="p-4 animate-in slide-in-from-top duration-300 border-blue-200 bg-blue-50/50">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-2xl">{selectedIntervention.icon}</span>
-                      <h3 className="text-lg font-semibold">New Intervention</h3>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Type:</span>
-                        <span className="font-medium">{selectedIntervention.name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Efficiency:</span>
-                        <span className="text-green-600 font-medium">-{selectedIntervention.efficiency}%</span>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-2">{selectedIntervention.description}</p>
-                    </div>
-                  </Card>
-                )}
+              {/* Left Side: Simulation Controls */}
+              <div className="lg:col-span-1">
+                <SimulationControls
+                  parameters={parameters}
+                  onParameterChange={handleParameterChange}
+                  onRunSimulation={handleRunSimulation}
+                  onResetSimulation={() => {
+                    const defaultParams = {
+                      green: 30,
+                      building: 60,
+                      water: 15,
+                      vehicles: 70,
+                      industrial: 50,
+                      energy: 65,
+                      congestion: 55,
+                      publicTransport: 40,
+                    };
+                    setParameters(defaultParams);
+                    // Reset current cell's simulation parameters
+                    if (selectedCell) {
+                      setGridData(prev => prev.map(cell =>
+                        cell.id === selectedCell.id
+                          ? { ...cell, simulationParams: { ...defaultParams } }
+                          : cell
+                      ));
+                    }
+                    updateGridDataFromParameters(defaultParams);
+                    toast.success('Parameters reset to default');
+                  }}
+                  onSaveScenario={() => {
+                    toast.success('Scenario saved as "Custom Scenario"');
+                    setCurrentScenario('Custom Scenario');
+                  }}
+                  isRunning={isSimulationRunning}
+                  currentScenario={currentScenario}
+                  selectedCellId={selectedCell?.id || null}
+                />
               </div>
 
-              {/* Center Column: Map (Span 2) */}
+              {/* Center Column: Map (Span 2) with floating impact */}
               <div className="lg:col-span-2 min-h-[500px]">
                 <FixedGridMap
                   cellEmissions={cellEmissions}
                   onCellSelect={handleCellSelect}
                   selectedCellId={selectedCell?.id || null}
+                  affectedCellIds={getAffectedCellIds()}
+                  selectedCellData={selectedCell && selectedCellBounds ? {
+                    id: selectedCell.id,
+                    row: selectedCell.y,
+                    col: selectedCell.x,
+                    baseEmission: selectedCell.baseEmission,
+                    emission: selectedCell.emission,
+                    bounds: selectedCellBounds
+                  } : null}
+                  showFloatingImpact={true}
                 />
               </div>
-              {/* Intervention List - right side only */}
+
+              {/* Right Side: Intervention Panel */}
               <div className="lg:col-span-1">
                 <InterventionPanel
                   availableInterventions={availableInterventions}
@@ -1166,55 +1048,6 @@ export default function App() {
                   onRemoveIntervention={handleRemoveIntervention}
                   onSelectIntervention={setSelectedIntervention}
                   selectedIntervention={selectedIntervention}
-                />
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="simulation" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <SimulationControls
-                parameters={parameters}
-                onParameterChange={handleParameterChange}
-                onRunSimulation={handleRunSimulation}
-                onResetSimulation={() => {
-                  const defaultParams = {
-                    green: 30,
-                    building: 60,
-                    water: 15,
-                    vehicles: 70,
-                    industrial: 50,
-                    energy: 65,
-                    congestion: 55,
-                    publicTransport: 40,
-                  };
-                  setParameters(defaultParams);
-                  // Reset current cell's simulation parameters
-                  if (selectedCell) {
-                    setGridData(prev => prev.map(cell =>
-                      cell.id === selectedCell.id
-                        ? { ...cell, simulationParams: { ...defaultParams } }
-                        : cell
-                    ));
-                  }
-                  updateGridDataFromParameters(defaultParams);
-                  toast.success('Parameters reset to default');
-                }}
-                onSaveScenario={() => {
-                  toast.success('Scenario saved as "Custom Scenario"');
-                  setCurrentScenario('Custom Scenario');
-                }}
-                isRunning={isSimulationRunning}
-                currentScenario={currentScenario}
-                selectedCellId={selectedCell?.id || null}
-              />
-              {/* Map - full width */}
-              <div className="lg:col-span-2">
-                <FixedGridMap
-                  cellEmissions={cellEmissions}
-                  onCellSelect={handleCellSelect}
-                  selectedCellId={selectedCell?.id || null}
-                  affectedCellIds={getAffectedCellIds()}
                 />
               </div>
             </div>
@@ -1327,6 +1160,7 @@ export default function App() {
               </div>
             </Card>
           </TabsContent>
+
           <TabsContent value="prediction" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
               {/* Left Panel - Controls */}
