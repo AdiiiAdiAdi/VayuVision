@@ -155,7 +155,23 @@ export function KPIMetrics({
                 }}
               />
 
-
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  padding: '10px',
+                }}
+                formatter={(value: number, name: string) => {
+                  if (name === 'CO₂ Emissions') {
+                    return [`${value.toFixed(2)} tons CO₂/year`, 'Emissions'];
+                  } else {
+                    return [`${value.toFixed(2)} tons saved`, 'Interventions'];
+                  }
+                }}
+                labelFormatter={(label) => `Year: ${label}`}
+              />
+              <Legend />
 
               <Line
                 type="monotone"
@@ -163,6 +179,8 @@ export function KPIMetrics({
                 stroke="#ef4444"
                 strokeWidth={2}
                 name="CO₂ Emissions"
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
               />
               <Line
                 type="monotone"
@@ -170,6 +188,8 @@ export function KPIMetrics({
                 stroke="#22c55e"
                 strokeWidth={2}
                 name="Interventions"
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -197,7 +217,33 @@ export function KPIMetrics({
                 }}
               />
 
-
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  padding: '10px',
+                }}
+                formatter={(value: number, name: string, props: any) => {
+                  const payload = props.payload;
+                  if (name === 'Baseline') {
+                    return [`${value.toFixed(2)} tons CO₂/year`, 'Baseline Emissions'];
+                  } else {
+                    const baselineValue = payload?.baseline || 0;
+                    const reduction = baselineValue - value;
+                    const reductionPercent = baselineValue > 0 ? ((reduction / baselineValue) * 100) : 0;
+                    return [
+                      [
+                        `${value.toFixed(2)} tons CO₂/year`,
+                        `Reduction: ${reduction.toFixed(2)} tons (${reductionPercent.toFixed(1)}%)`
+                      ],
+                      'Current Emissions'
+                    ];
+                  }
+                }}
+                labelFormatter={(label) => `Source: ${label}`}
+              />
+              <Legend />
 
               <Bar dataKey="baseline" fill="#94a3b8" name="Baseline" />
               <Bar dataKey="current" fill="#3b82f6" name="Current" />
@@ -229,6 +275,25 @@ export function KPIMetrics({
                 ))}
               </Pie>
 
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  padding: '10px',
+                }}
+                formatter={(value: number, name: string, props: any) => {
+                  const total = currentDistributionData.reduce((sum, item) => sum + item.value, 0);
+                  const percentage = ((value / total) * 100).toFixed(1);
+                  return [
+                    [
+                      `${value.toFixed(2)} tons CO₂/year`,
+                      `${percentage}% of total emissions`
+                    ],
+                    name
+                  ];
+                }}
+              />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
@@ -257,7 +322,19 @@ export function KPIMetrics({
                 }}
               />
 
-
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  padding: '10px',
+                }}
+                formatter={(value: number) => {
+                  return [`${value.toFixed(2)} tons CO₂ saved`, 'Annual Savings'];
+                }}
+                labelFormatter={(label) => `Year: ${label}`}
+              />
+              <Legend />
 
               <Line
                 type="monotone"
@@ -265,6 +342,8 @@ export function KPIMetrics({
                 stroke="#16a34a"
                 strokeWidth={2}
                 name="Tons CO₂ Saved"
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -289,7 +368,7 @@ export function KPIMetrics({
             <ul className="mt-2 space-y-1 text-blue-700">
               <li>• Total: {currentKPI.totalEmissions.toFixed(1)} tons/year</li>
               <li>• Efficiency: {currentKPI.interventionEfficiency.toFixed(1)}%</li>
-              <li>• Cost: ${currentKPI.costEffectiveness}/ton</li>
+              <li>• Cost: ₹{currentKPI.costEffectiveness}/ton</li>
             </ul>
           </div>
 

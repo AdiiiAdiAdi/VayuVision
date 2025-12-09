@@ -360,7 +360,7 @@
   }
 
   body {
-    background-color: var(--background);
+    background-color: #dcfce7;
     color: var(--foreground);
   }
 
@@ -1489,7 +1489,7 @@
 
 :root {
   --font-size: 16px;
-  --background: #fff;
+  --background: #dcfce7;
   --foreground: oklch(.145 0 0);
   --card: #fff;
   --card-foreground: oklch(.145 0 0);

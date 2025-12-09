@@ -551,7 +551,7 @@
 // }
 
 import React, { useEffect, useRef, useState } from "react";
-import { MapContainer, TileLayer, Rectangle, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Rectangle, useMap, Marker } from "react-leaflet";
 import L from "leaflet";
 import {
   ResponsiveContainer,
@@ -589,6 +589,15 @@ interface SelectedCellMini {
   // extend if you need more fields
 }
 
+interface GridCellData {
+  id: string;
+  interventions: Array<{
+    id: string;
+    icon?: string;
+    name: string;
+  }>;
+}
+
 interface FixedGridMapProps {
   cellEmissions?: number[][];
   onCellSelect?: (data: { row: number; col: number; cellId: string; bounds: [[number, number], [number, number]] }) => void;
@@ -598,9 +607,11 @@ interface FixedGridMapProps {
   selectedCellData?: SelectedCellMini | null;
   /** control whether floating emission impact is shown on this map instance */
   showFloatingImpact?: boolean;
+  /** Grid data with interventions for each cell */
+  gridData?: GridCellData[];
 }
 
-function FixedGridOverlay({ cellEmissions, onCellSelect, selectedCellId, affectedCellIds }: FixedGridMapProps) {
+function FixedGridOverlay({ cellEmissions, onCellSelect, selectedCellId, affectedCellIds, gridData }: FixedGridMapProps) {
   const map = useMap();
   const [paneReady, setPaneReady] = React.useState(false);
 
@@ -615,35 +626,35 @@ function FixedGridOverlay({ cellEmissions, onCellSelect, selectedCellId, affecte
 
   if (!paneReady) return null;
 
-  const topLat = PUNE_BOUNDS.topLeft[0];
-  const bottomLat = PUNE_BOUNDS.bottomRight[0];
-  const leftLng = PUNE_BOUNDS.topLeft[1];
-  const rightLng = PUNE_BOUNDS.bottomRight[1];
+    const topLat = PUNE_BOUNDS.topLeft[0];
+    const bottomLat = PUNE_BOUNDS.bottomRight[0];
+    const leftLng = PUNE_BOUNDS.topLeft[1];
+    const rightLng = PUNE_BOUNDS.bottomRight[1];
 
-  const latStep = (topLat - bottomLat) / GRID_SIZE;
-  const lngStep = (rightLng - leftLng) / GRID_SIZE;
+    const latStep = (topLat - bottomLat) / GRID_SIZE;
+    const lngStep = (rightLng - leftLng) / GRID_SIZE;
 
   const cells: GridCellBounds[] = [];
-  for (let row = 0; row < GRID_SIZE; row++) {
-    for (let col = 0; col < GRID_SIZE; col++) {
-      const cellTopLat = topLat - row * latStep;
-      const cellBottomLat = topLat - (row + 1) * latStep;
-      const cellLeftLng = leftLng + col * lngStep;
-      const cellRightLng = leftLng + (col + 1) * lngStep;
+    for (let row = 0; row < GRID_SIZE; row++) {
+      for (let col = 0; col < GRID_SIZE; col++) {
+        const cellTopLat = topLat - row * latStep;
+        const cellBottomLat = topLat - (row + 1) * latStep;
+        const cellLeftLng = leftLng + col * lngStep;
+        const cellRightLng = leftLng + (col + 1) * lngStep;
 
-      const bounds: [[number, number], [number, number]] = [
-        [cellBottomLat, cellLeftLng],
+        const bounds: [[number, number], [number, number]] = [
+          [cellBottomLat, cellLeftLng],
         [cellTopLat, cellRightLng],
-      ];
+        ];
 
-      cells.push({
-        row,
-        col,
-        cellId: `${col}-${row}`,
+        cells.push({
+          row,
+          col,
+          cellId: `${col}-${row}`,
         bounds,
-      });
+        });
+      }
     }
-  }
 
   const getCellEmission = (row: number, col: number) => cellEmissions?.[row]?.[col] ?? 0;
   const getEmissionColor = (emission: number) => {
@@ -653,34 +664,88 @@ function FixedGridOverlay({ cellEmissions, onCellSelect, selectedCellId, affecte
     return "#22c55e";
   };
 
+  // Get cell data for interventions
+  const getCellData = (cellId: string) => {
+    return gridData?.find(cell => cell.id === cellId);
+  };
+
+  // Calculate center of cell bounds
+  const getCellCenter = (bounds: [[number, number], [number, number]]): [number, number] => {
+    const [[south, west], [north, east]] = bounds;
+    return [(south + north) / 2, (west + east) / 2];
+  };
+
   return (
     <>
       {cells.map((cell) => {
         const isSelected = cell.cellId === selectedCellId;
         const isAffected = affectedCellIds?.includes(cell.cellId);
+        const cellData = getCellData(cell.cellId);
+        const cellCenter = getCellCenter(cell.bounds);
 
         return (
-          <Rectangle
-            key={cell.cellId}
-            bounds={cell.bounds}
-            pane="gridPane"
-            pathOptions={{
-              fillOpacity: isAffected ? 0.6 : 0.35,
-              color: isSelected ? "#2563eb" : isAffected ? "#f59e0b" : "#ffffff",
-              weight: isSelected ? 3 : isAffected ? 2 : 0.7,
-              fillColor: getEmissionColor(getCellEmission(cell.row, cell.col)),
-            }}
-            eventHandlers={{
-              click: () => {
-                onCellSelect?.({
-                  row: cell.row,
-                  col: cell.col,
-                  cellId: cell.cellId,
-                  bounds: cell.bounds,
-                });
-              },
-            }}
-          />
+          <React.Fragment key={cell.cellId}>
+            <Rectangle
+              bounds={cell.bounds}
+              pane="gridPane"
+              pathOptions={{
+                fillOpacity: isAffected ? 0.6 : 0.35,
+                color: isSelected ? "#2563eb" : isAffected ? "#f59e0b" : "#ffffff",
+                weight: isSelected ? 3 : isAffected ? 2 : 0.7,
+                fillColor: getEmissionColor(getCellEmission(cell.row, cell.col)),
+              }}
+              eventHandlers={{
+                click: () => {
+                  onCellSelect?.({
+                    row: cell.row,
+                    col: cell.col,
+                    cellId: cell.cellId,
+                    bounds: cell.bounds,
+                  });
+                },
+              }}
+            />
+            {/* Render intervention markers */}
+            {cellData?.interventions && cellData.interventions.length > 0 && (
+              <>
+                {cellData.interventions.map((intervention, idx) => {
+                  // Offset markers so they don't overlap
+                  const offset = idx * 0.001; // Small offset for multiple interventions
+                  const position: [number, number] = [
+                    cellCenter[0] + offset,
+                    cellCenter[1] + offset
+                  ];
+
+                  const icon = L.divIcon({
+                    className: 'intervention-marker',
+                    html: `<div style="
+                      background: white;
+                      border: 2px solid #3b82f6;
+                      border-radius: 50%;
+                      width: 32px;
+                      height: 32px;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      font-size: 18px;
+                      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                    ">${intervention.icon || '🔧'}</div>`,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                  });
+
+                  return (
+                    <Marker
+                      key={`${cell.cellId}-${intervention.id}`}
+                      position={position}
+                      icon={icon}
+                      pane="markerPane"
+                    />
+                  );
+                })}
+              </>
+            )}
+          </React.Fragment>
         );
       })}
     </>
@@ -783,7 +848,36 @@ function FloatingChartOverlay({
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="name" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 10 }} />
-              <Tooltip formatter={(v: number) => `${v} t`} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  padding: '8px',
+                  fontSize: '12px',
+                }}
+                formatter={(value: number, name: string, props: any) => {
+                  const payload = props.payload;
+                  const reduction = payload?.name === 'Before' ? 0 : 
+                    (data.find(d => d.name === 'Before')?.value || 0) - value;
+                  const reductionPercent = payload?.name === 'Before' ? 0 :
+                    (((data.find(d => d.name === 'Before')?.value || 0) - value) / 
+                     (data.find(d => d.name === 'Before')?.value || 1)) * 100;
+                  
+                  if (payload?.name === 'Before') {
+                    return [`${value.toFixed(2)} tons CO₂/year`, 'Baseline'];
+                  } else {
+                    return [
+                      [
+                        `${value.toFixed(2)} tons CO₂/year`,
+                        `Reduction: ${reduction.toFixed(2)} tons (${reductionPercent.toFixed(1)}%)`
+                      ],
+                      'After Intervention'
+                    ];
+                  }
+                }}
+                labelFormatter={(label) => `Status: ${label}`}
+              />
               <Bar dataKey="value">
                 {data.map((entry, idx) => (
                   <Cell key={`c-${idx}`} fill={entry.color} />

@@ -220,8 +220,6 @@ import React from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Separator } from './ui/separator';
 import { Plus, Trash2, Info } from 'lucide-react';
 
 interface InterventionType {
@@ -263,7 +261,6 @@ export function InterventionPanel({
   onSelectIntervention,
   selectedIntervention
 }: InterventionPanelProps) {
-
   // Color indicator based on efficiency
   const getEfficiencyColor = (eff: number) => {
     if (eff >= 30) return 'text-green-600';
@@ -295,71 +292,56 @@ export function InterventionPanel({
     <Card className="p-4 h-full overflow-y-auto">
       <h3 className="text-lg mb-4">CO₂ Capture Interventions</h3>
 
-      <Tabs defaultValue="place" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="place">Place Interventions</TabsTrigger>
-          <TabsTrigger value="manage">
-            Manage ({placedInterventions.length})
-          </TabsTrigger>
-        </TabsList>
+      <div className="space-y-4">
+        {/* Selected cell info */}
+        {selectedCellId ? (
+          <div className="p-3 bg-blue-50 rounded-lg">
+            <div className="text-sm text-blue-900 font-medium">
+              Selected: Cell {selectedCellId} ({selectedCellType})
+            </div>
+            <div className="text-xs text-blue-700 mt-1">
+              {cellInterventions(selectedCellId).length} intervention(s) placed here
+            </div>
+          </div>
+        ) : (
+          <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+            Select a cell on the map to place interventions.
+          </div>
+        )}
 
-        {/* ------------------ PLACE TAB --------------------- */}
-        <TabsContent value="place" className="space-y-4">
+        {/* Add Intervention Section */}
+        <div className="mb-4">
+          <h4 className="text-sm font-medium text-gray-700 mb-3">Add Intervention</h4>
           
-          {/* Selected cell info */}
-          {selectedCellId ? (
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <div className="text-sm text-blue-900 font-medium">
-                Selected: Cell {selectedCellId} ({selectedCellType})
-              </div>
-              <div className="text-xs text-blue-700 mt-1">
-                {cellInterventions(selectedCellId).length} intervention(s) placed here
-              </div>
-            </div>
-          ) : (
-            <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-              Select a cell on the map to place interventions.
-            </div>
-          )}
-
-          {/* List of interventions */}
+          {/* Interventions List - Always Visible */}
           <div className="space-y-3">
             {availableInterventions.map((intervention) => {
               const disabledReason = getDisableReason(intervention);
+              const canPlace = !disabledReason && selectedCellId;
 
               return (
                 <div
                   key={intervention.id}
-                  className={`p-3 border rounded-lg transition-all cursor-pointer ${
-                    selectedIntervention?.id === intervention.id
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                  onClick={() =>
-                    onSelectIntervention(
-                      selectedIntervention?.id === intervention.id ? null : intervention
-                    )
-                  }
+                  className="p-3 border rounded-lg bg-white transition-all"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2 flex-1">
                       <span className="text-lg">{intervention.icon}</span>
-                      <div>
+                      <div className="flex-1">
                         <div className="text-sm font-medium">{intervention.name}</div>
                         <div className="text-xs text-gray-600">{intervention.description}</div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className={`text-sm ${getEfficiencyColor(intervention.efficiency)}`}>
+                    <div className="text-right ml-2">
+                      <div className={`text-sm font-semibold ${getEfficiencyColor(intervention.efficiency)}`}>
                         -{intervention.efficiency}%
                       </div>
                       <div className="text-xs text-gray-500">
-                        ${intervention.cost}/unit
+                        ₹{intervention.cost}/unit
                       </div>
                     </div>
                   </div>
-
-                  {/* Tags + Place button */}
+                  
                   <div className="flex items-center justify-between mt-2">
                     <div className="flex flex-wrap gap-1">
                       {intervention.suitableFor.map((t) => (
@@ -368,67 +350,30 @@ export function InterventionPanel({
                         </Badge>
                       ))}
                     </div>
-
                     <Button
                       size="sm"
-                      disabled={!!disabledReason}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!disabledReason && selectedCellId) {
+                      disabled={!canPlace}
+                      onClick={() => {
+                        if (canPlace && selectedCellId) {
                           onPlaceIntervention(intervention.id, selectedCellId);
                         }
                       }}
+                      className="ml-2"
                     >
                       <Plus className="w-3 h-3 mr-1" />
                       Place
                     </Button>
                   </div>
-
+                  
                   {disabledReason && (
-                    <p className="text-xs text-red-500 mt-1">{disabledReason}</p>
+                    <p className="text-xs text-red-500 mt-2">{disabledReason}</p>
                   )}
                 </div>
               );
             })}
           </div>
-
-        </TabsContent>
-
-        {/* ------------------ MANAGE TAB --------------------- */}
-        <TabsContent value="manage" className="space-y-4">
-          {placedInterventions.length === 0 ? (
-            <div className="p-4 text-center text-gray-500 text-sm">
-              No interventions placed yet.
-            </div>
-          ) : (
-            <>
-              {placedInterventions.map((placed) => (
-                <div key={placed.id} className="p-3 border rounded-lg flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{placed.interventionType.icon}</span>
-                    <div>
-                      <div className="text-sm">{placed.interventionType.name}</div>
-                      <div className="text-xs text-gray-600">
-                        Cell {placed.cellId} • -{placed.efficiency}%
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => onRemoveIntervention(placed.id)}
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
-              ))}
-
-              <Separator />
-            </>
-          )}
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </Card>
   );
 }
