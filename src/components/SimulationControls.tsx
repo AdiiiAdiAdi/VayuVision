@@ -41,7 +41,6 @@ export function SimulationControls({
     <Card className="p-4">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg">Emission Factors</h3>
-        <Badge variant="outline">{currentScenario}</Badge>
       </div>
 
       <div className="space-y-4">
