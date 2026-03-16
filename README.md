@@ -1,92 +1,96 @@
-# Hi, I'm Aditya 👋
+# VayuVision 🌍
 
-Computer Science student at MIT World Peace University passionate about building scalable systems, cloud-native applications, and data-driven solutions.
+VayuVision is a **digital twin platform for monitoring and predicting urban CO₂ emissions**.  
+It visualizes city-level emissions using interactive heatmaps and allows users to simulate interventions such as CO₂ capture units to evaluate potential emission reductions.
 
-I enjoy working across **backend development, DevOps, cloud infrastructure, and machine learning**, with a focus on building practical, real-world systems.
+The project was developed for **Smart India Hackathon (SIH) 2025** and was selected for the **Grand Finale**.
 
 ---
 
-## 🚀 Technical Skills
+## 🚀 Features
 
-**Languages**
-- C++
-- Python
+- Interactive **CO₂ emission heatmap visualization**
+- Simulation of **CO₂ capture unit placement**
+- **Monte Carlo–based prediction** for forecasting future emission trends
+- Data-driven **urban emission monitoring**
+- Interactive exploration of **environmental intervention strategies**
+
+---
+
+## 🧠 Concept
+
+Urban carbon emissions are difficult to monitor and mitigate effectively without visualization and predictive modeling.
+
+VayuVision addresses this by creating a **digital twin of urban emission patterns**, enabling:
+
+- Visualization of emission hotspots
+- Prediction of future emission growth
+- Simulation of environmental interventions
+- Data-driven decision making for emission reduction
+
+---
+
+## 🛠 Tech Stack
+
+**Frontend**
 - TypeScript
-- JavaScript
-- SQL
-
-**Cloud & DevOps**
-- AWS (EC2, RDS, S3, Lambda, API Gateway)
-- Docker
-- Jenkins
-- CI/CD pipelines
-- Prometheus
-- Grafana
-
-**Web Development**
 - Node.js
-- HTML / CSS
-- REST APIs
+- Interactive map visualization
 
-**Machine Learning**
-- Scikit-learn
-- Pandas
-- NumPy
-- Monte Carlo simulations
+**Backend**
+- Python APIs
+- SQL database
 
-**Core CS**
-- Data Structures & Algorithms
-- Operating Systems
-- Database Management Systems
+**Simulation & Analytics**
+- Monte Carlo simulation for emission prediction
 
 ---
 
-# 🧠 Projects
+## 🧑‍💻 My Role
 
-## Sahaay — Crowdsourced Reporting Platform
-Microservices-based platform for real-time issue reporting and tracking.
-
-**Tech Stack:**  
-Node.js, AWS, Docker, Jenkins, SQL, Prometheus, Grafana
-
-**Highlights**
-- Built a microservices architecture deployed on AWS
-- Implemented CI/CD pipelines with Jenkins and GitHub
-- Reduced manual deployment time by **8–9 minutes per commit**
-- Selected for **Smart India Hackathon (SIH)** among 500+ teams
+- Led a **6-member multidisciplinary team**
+- Designed system architecture for the digital twin platform
+- Implemented **Monte Carlo prediction models**
+- Coordinated frontend, backend, and data components
+- Presented the solution at **Smart India Hackathon 2025 Grand Finale**
 
 ---
 
-## VayuVision — Digital Twin for CO₂ Emissions
-Interactive platform for visualizing city-level carbon emissions and simulating emission reduction strategies.
+## 📊 Use Case
 
-**Tech Stack:**  
-TypeScript, Node.js, Python, SQL
+VayuVision can help:
 
-**Highlights**
-- Developed interactive heatmaps for CO₂ emission visualization
-- Implemented **Monte Carlo simulations** for emission prediction
-- Enabled simulation of CO₂ capture unit placement
-- Led a **6-member team** as **Team Lead**
-- Selected for **SIH 2025 Grand Finale**
+- Environmental researchers
+- Urban planners
+- Policy makers
+- Climate technology initiatives
+
+to **monitor and reduce urban CO₂ emissions through data-driven strategies**.
 
 ---
 
-## 🏆 Achievements
+## 📸 Future Improvements
 
-- Team Lead for **Smart India Hackathon 2025 Grand Finale**
-- Built scalable cloud-native systems using **AWS and DevOps tools**
-- Experience working with **microservices architectures and CI/CD**
+- Integration with real-time sensor data
+- Machine learning based emission forecasting
+- Multi-city scalability
+- Policy impact simulations
 
 ---
 
-## 📫 Connect With Me
+## 🏆 Achievement
+
+Selected for the **Smart India Hackathon (SIH) 2025 Grand Finale**.
+
+---
+
+## 📬 Contact
+
+Aditya Muddana  
+Computer Science Student – MIT World Peace University  
 
 LinkedIn  
-www.linkedin.com/in/aditya-muddana-94054a293
+https://www.linkedin.com/in/aditya-muddana-94054a293
 
 GitHub  
-github.com/AdiiiAdiAdi
-
-Email  
-aditya.muddana2004@gmail.com
+https://github.com/AdiiiAdiAdi
